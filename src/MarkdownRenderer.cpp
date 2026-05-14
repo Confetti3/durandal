@@ -13,7 +13,7 @@ QString MarkdownRenderer::renderToHtml(const QString& markdown) const
     QByteArray input = processed.toUtf8();
 
     char* rawHtml = cmark_markdown_to_html(input.constData(), input.size(),
-                                           CMARK_OPT_DEFAULT);
+                                           CMARK_OPT_UNSAFE);
     QString html = QString::fromUtf8(rawHtml);
     free(rawHtml);
 

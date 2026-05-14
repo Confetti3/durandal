@@ -215,6 +215,10 @@ void MainWindow::setupUI()
 
     // Toolbar
     addToolBar(m_toolBar);
+    if (m_toolBar->layout()) {
+        m_toolBar->layout()->setSpacing(0);
+        m_toolBar->layout()->setContentsMargins(0, 0, 0, 0);
+    }
 
     // Enable window drag from toolbar and menu bar empty areas
     menuBar()->installEventFilter(this);

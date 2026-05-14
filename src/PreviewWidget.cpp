@@ -39,6 +39,7 @@ PreviewWidget::PreviewWidget(QWidget* parent)
     layout->addWidget(m_webView);
 
     m_webView->setPage(m_page);
+    m_webView->setContextMenuPolicy(Qt::NoContextMenu);
     m_page->setBackgroundColor(m_dark ? QColor("#1e1e2e") : Qt::white);
 
     connect(m_page, &PreviewPage::wikilinkClicked,

@@ -63,7 +63,6 @@ private:
 
     int lineNumberAreaWidth() const;
     void lineNumberAreaPaintEvent(QPaintEvent* event);
-    void updateFont();
 
     class LineNumberArea : public QWidget
     {

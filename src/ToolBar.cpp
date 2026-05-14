@@ -83,18 +83,37 @@ ToolBar::ToolBar(QWidget* parent)
 
 void ToolBar::setDark(bool dark)
 {
-    // Remove existing actions and recreate with correct colors
     for (QAction* a : m_actions) {
         removeAction(a);
         delete a;
     }
     m_actions.clear();
+    if (m_fontSizeCombo) {
+        m_fontSizeCombo->deleteLater();
+        m_fontSizeCombo = nullptr;
+    }
     setupActions(dark);
 }
 
 void ToolBar::setupActions(bool dark)
 {
     QColor iconColor = dark ? QColor("#cccccc") : QColor("#2a2a2a");
+
+    // Font size combo (leftmost)
+    m_fontSizeCombo = new QComboBox(this);
+    m_fontSizeCombo->setToolTip(tr("Font Size"));
+    for (int size = 10; size <= 20; ++size) {
+        m_fontSizeCombo->addItem(QString::number(size), size);
+    }
+    m_fontSizeCombo->setCurrentIndex(3);
+    m_fontSizeCombo->setFixedWidth(50);
+    connect(m_fontSizeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this](int index) {
+                emit fontSizeChanged(m_fontSizeCombo->itemData(index).toInt());
+            });
+    addWidget(m_fontSizeCombo);
+
+    addSeparator();
 
     QAction* boldAction = addAction(makeTextIcon("B", iconColor, true), tr("Bold"));
     boldAction->setToolTip(tr("Bold (Ctrl+B)"));
@@ -153,22 +172,6 @@ void ToolBar::setupActions(bool dark)
     wlAction->setToolTip(tr("Insert Wikilink"));
     connect(wlAction, &QAction::triggered, this, &ToolBar::wikilinkClicked);
     m_actions.append(wlAction);
-
-    addSeparator();
-
-    // Font size combo box
-    m_fontSizeCombo = new QComboBox(this);
-    m_fontSizeCombo->setToolTip(tr("Font Size"));
-    for (int size = 10; size <= 20; ++size) {
-        m_fontSizeCombo->addItem(QString::number(size), size);
-    }
-    m_fontSizeCombo->setCurrentIndex(3); // default 13
-    m_fontSizeCombo->setFixedWidth(50);
-    connect(m_fontSizeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, [this](int index) {
-                emit fontSizeChanged(m_fontSizeCombo->itemData(index).toInt());
-            });
-    addWidget(m_fontSizeCombo);
 }
 
 void ToolBar::setFontSize(int size)

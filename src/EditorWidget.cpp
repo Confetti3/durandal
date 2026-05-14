@@ -24,7 +24,11 @@ EditorWidget::EditorWidget(QWidget* parent)
     setLineWrapMode(QPlainTextEdit::WidgetWidth);
     setTabStopDistance(40);
 
-    updateFont();
+    QFont font("Consolas", 13);
+    font.setStyleHint(QFont::Monospace);
+    document()->setDefaultFont(font);
+    setFont(font);
+    m_lineNumberArea->setFont(font);
 
     connect(this, &QPlainTextEdit::blockCountChanged,
             this, &EditorWidget::updateLineNumberAreaWidth);
@@ -166,18 +170,32 @@ int EditorWidget::fontSize() const
 void EditorWidget::setFontSize(int size)
 {
     if (size < 6 || size > 48) return;
-    if (m_fontSize == size) return;
     m_fontSize = size;
-    updateFont();
-    emit fontSizeChanged(size);
-}
 
-void EditorWidget::updateFont()
-{
-    QFont font("Consolas", m_fontSize);
-    font.setStyleHint(QFont::Monospace);
-    document()->setDefaultFont(font);
-    setFont(font);
+    QTextCursor cursor = textCursor();
+
+    if (cursor.hasSelection()) {
+        double emValue = size / 14.0;
+        QString openTag = QStringLiteral("<span style=\"font-size:%1em\">")
+                              .arg(emValue, 0, 'f', 2);
+        QString closeTag = QStringLiteral("</span>");
+
+        int start = cursor.selectionStart();
+        int end = cursor.selectionEnd();
+
+        cursor.beginEditBlock();
+        cursor.setPosition(end);
+        cursor.insertText(closeTag);
+        cursor.setPosition(start);
+        cursor.insertText(openTag);
+        // Reselect the original text between the tags
+        cursor.setPosition(start + openTag.length());
+        cursor.setPosition(end + openTag.length(), QTextCursor::KeepAnchor);
+        cursor.endEditBlock();
+        setTextCursor(cursor);
+    }
+
+    emit fontSizeChanged(size);
 }
 
 void EditorWidget::contextMenuEvent(QContextMenuEvent* event)
@@ -320,6 +338,7 @@ int EditorWidget::lineNumberAreaWidth() const
 void EditorWidget::lineNumberAreaPaintEvent(QPaintEvent* event)
 {
     QPainter painter(m_lineNumberArea);
+    painter.setFont(font());
     QColor base = palette().color(QPalette::Base);
     bool isDark = base.lightness() < 128;
     QColor bg = isDark ? base.darker(106) : QColor("#f0f0f0");

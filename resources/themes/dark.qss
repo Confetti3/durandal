@@ -63,6 +63,7 @@ QToolBar {
 }
 
 QToolBar::handle {
+    image: none;
     width: 0px;
     height: 0px;
     background: none;
@@ -81,7 +82,7 @@ QToolButton {
     border: 1px solid transparent;
     border-radius: 0px;
     padding: 4px 8px;
-    margin: 0px 1px;
+    margin: 0px;
     min-width: 26px;
     min-height: 20px;
     color: #a6adbb;

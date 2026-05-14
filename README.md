@@ -21,7 +21,10 @@ Inspired by the Rampant AI from Bungie's *Marathon* series — Durandal seeks im
 
 ## Screenshots
 
-*(Screenshots coming soon)*
+<img width="1665" height="1039" alt="Durandal_B79XOH8piS" src="https://github.com/user-attachments/assets/68fde02f-afa2-4222-a71b-120bca770724" />
+
+<img width="1665" height="1039" alt="Durandal_6Tk7s3wzIT" src="https://github.com/user-attachments/assets/91245bd3-c3b9-4008-aafc-95c9ee130086" />
+
 
 ## Download
 

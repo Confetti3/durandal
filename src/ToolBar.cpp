@@ -1,5 +1,6 @@
 #include "ToolBar.h"
 #include <QPainter>
+#include <QComboBox>
 
 QIcon ToolBar::makeTextIcon(const QString& text, const QColor& color, bool bold, bool italic)
 {
@@ -152,4 +153,31 @@ void ToolBar::setupActions(bool dark)
     wlAction->setToolTip(tr("Insert Wikilink"));
     connect(wlAction, &QAction::triggered, this, &ToolBar::wikilinkClicked);
     m_actions.append(wlAction);
+
+    addSeparator();
+
+    // Font size combo box
+    m_fontSizeCombo = new QComboBox(this);
+    m_fontSizeCombo->setToolTip(tr("Font Size"));
+    for (int size = 10; size <= 20; ++size) {
+        m_fontSizeCombo->addItem(QString::number(size), size);
+    }
+    m_fontSizeCombo->setCurrentIndex(3); // default 13
+    m_fontSizeCombo->setFixedWidth(50);
+    connect(m_fontSizeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this](int index) {
+                emit fontSizeChanged(m_fontSizeCombo->itemData(index).toInt());
+            });
+    addWidget(m_fontSizeCombo);
+}
+
+void ToolBar::setFontSize(int size)
+{
+    if (!m_fontSizeCombo) return;
+    for (int i = 0; i < m_fontSizeCombo->count(); ++i) {
+        if (m_fontSizeCombo->itemData(i).toInt() == size) {
+            m_fontSizeCombo->setCurrentIndex(i);
+            return;
+        }
+    }
 }

@@ -73,6 +73,11 @@ MainWindow::MainWindow(QWidget* parent)
     m_settings->load();
     m_darkTheme = m_settings->useDarkTheme();
 
+    // Apply saved editor font size
+    int fontSize = m_settings->editorFontSize();
+    m_editor->setFontSize(fontSize);
+    m_toolBar->setFontSize(fontSize);
+
     // Set global monospace font
     QFont monoFont("Cascadia Code", 13);
     if (!QFontInfo(monoFont).exactMatch()) {
@@ -370,6 +375,8 @@ void MainWindow::setupConnections()
     connect(m_toolBar, &ToolBar::codeBlockClicked, m_editor, &EditorWidget::insertCodeBlock);
     connect(m_toolBar, &ToolBar::linkClicked, m_editor, &EditorWidget::insertLink);
     connect(m_toolBar, &ToolBar::wikilinkClicked, m_editor, &EditorWidget::insertWikilink);
+    connect(m_toolBar, &ToolBar::fontSizeChanged, m_editor, &EditorWidget::setFontSize);
+    connect(m_editor, &EditorWidget::fontSizeChanged, m_toolBar, &ToolBar::setFontSize);
 
     // Editor content change -> update preview
     connect(m_editor, &QPlainTextEdit::textChanged, this, &MainWindow::onEditorContentChanged);
@@ -796,6 +803,7 @@ void MainWindow::saveWindowState()
 {
     m_settings->setWindowGeometry(saveGeometry());
     m_settings->setWindowState(saveState());
+    m_settings->setEditorFontSize(m_editor->fontSize());
 }
 
 void MainWindow::restoreWindowState()

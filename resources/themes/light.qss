@@ -58,7 +58,7 @@ QToolBar {
     border-bottom: 1px solid #d0d0d0;
     border-top: none;
     spacing: 0px;
-    padding: 4px 6px;
+    padding: 4px 6px 4px 0px;
     margin: 0px;
 }
 
@@ -226,12 +226,13 @@ QDockWidget {
     color: #1a1a1a;
     titlebar-close-icon: none;
     titlebar-normal-icon: none;
+    border: 1px dashed #c0c0c0;
 }
 
 QDockWidget::title {
     background-color: #eaeaea;
     padding: 6px;
-    border-bottom: 1px solid #d0d0d0;
+    border-bottom: 1px dashed #c0c0c0;
     font-size: 12px;
 }
 
@@ -240,6 +241,20 @@ QDockWidget::float-button {
     background-color: transparent;
     border: none;
     padding: 0px;
+}
+
+/* MainWindow separator (dock resize handles) */
+QMainWindow::separator {
+    background-color: #d0d0d0;
+    border: 1px dashed #c0c0c0;
+}
+
+QMainWindow::separator:horizontal {
+    width: 2px;
+}
+
+QMainWindow::separator:vertical {
+    height: 2px;
 }
 
 /* Scroll Bars */

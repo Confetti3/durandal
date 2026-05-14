@@ -33,12 +33,17 @@ public:
     void insertLink();
     void insertWikilink();
 
+    int fontSize() const;
+    void setFontSize(int size);
+
 signals:
     void fileNameChanged(const QString& fileName);
     void cursorPositionChanged(int line, int column);
+    void fontSizeChanged(int size);
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
+    void contextMenuEvent(QContextMenuEvent* event) override;
 
 public slots:
     void highlightCurrentLine();
@@ -54,9 +59,11 @@ private:
     AutoCompleter* m_completer;
     QWidget* m_lineNumberArea;
     int m_wordCount;
+    int m_fontSize;
 
     int lineNumberAreaWidth() const;
     void lineNumberAreaPaintEvent(QPaintEvent* event);
+    void updateFont();
 
     class LineNumberArea : public QWidget
     {

@@ -9,6 +9,9 @@
 #include <QFileInfo>
 #include <QTextStream>
 #include <QRegularExpression>
+#include <QMenu>
+#include <QAction>
+#include <QFont>
 
 EditorWidget::EditorWidget(QWidget* parent)
     : QPlainTextEdit(parent)
@@ -16,13 +19,12 @@ EditorWidget::EditorWidget(QWidget* parent)
     , m_completer(new AutoCompleter(this, this))
     , m_lineNumberArea(new LineNumberArea(this))
     , m_wordCount(0)
+    , m_fontSize(13)
 {
     setLineWrapMode(QPlainTextEdit::WidgetWidth);
     setTabStopDistance(40);
 
-    QFont font("Consolas", 13);
-    font.setStyleHint(QFont::Monospace);
-    document()->setDefaultFont(font);
+    updateFont();
 
     connect(this, &QPlainTextEdit::blockCountChanged,
             this, &EditorWidget::updateLineNumberAreaWidth);
@@ -154,6 +156,103 @@ void EditorWidget::insertWikilink()
         cursor.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, 2);
         setTextCursor(cursor);
     }
+}
+
+int EditorWidget::fontSize() const
+{
+    return m_fontSize;
+}
+
+void EditorWidget::setFontSize(int size)
+{
+    if (size < 6 || size > 48) return;
+    if (m_fontSize == size) return;
+    m_fontSize = size;
+    updateFont();
+    emit fontSizeChanged(size);
+}
+
+void EditorWidget::updateFont()
+{
+    QFont font("Consolas", m_fontSize);
+    font.setStyleHint(QFont::Monospace);
+    document()->setDefaultFont(font);
+    setFont(font);
+}
+
+void EditorWidget::contextMenuEvent(QContextMenuEvent* event)
+{
+    QMenu* menu = new QMenu(this);
+
+    // Font size submenu
+    QMenu* fontSizeMenu = menu->addMenu(tr("Font Size"));
+    for (int size = 10; size <= 20; ++size) {
+        QAction* action = fontSizeMenu->addAction(QString::number(size));
+        action->setCheckable(true);
+        action->setChecked(m_fontSize == size);
+        connect(action, &QAction::triggered, this, [this, size]() { setFontSize(size); });
+    }
+    menu->addSeparator();
+
+    // Formatting actions
+    QAction* boldAction = menu->addAction(tr("Bold"));
+    boldAction->setShortcut(QKeySequence::Bold);
+    connect(boldAction, &QAction::triggered, this, &EditorWidget::insertBold);
+
+    QAction* italicAction = menu->addAction(tr("Italic"));
+    italicAction->setShortcut(QKeySequence::Italic);
+    connect(italicAction, &QAction::triggered, this, &EditorWidget::insertItalic);
+    menu->addSeparator();
+
+    QMenu* headingMenu = menu->addMenu(tr("Heading"));
+    QAction* h1Action = headingMenu->addAction(tr("Heading 1"));
+    connect(h1Action, &QAction::triggered, this, [this]() { insertHeading(1); });
+    QAction* h2Action = headingMenu->addAction(tr("Heading 2"));
+    connect(h2Action, &QAction::triggered, this, [this]() { insertHeading(2); });
+    QAction* h3Action = headingMenu->addAction(tr("Heading 3"));
+    connect(h3Action, &QAction::triggered, this, [this]() { insertHeading(3); });
+
+    QAction* bulletAction = menu->addAction(tr("Bullet List"));
+    connect(bulletAction, &QAction::triggered, this, &EditorWidget::insertBulletList);
+
+    QAction* numberedAction = menu->addAction(tr("Numbered List"));
+    connect(numberedAction, &QAction::triggered, this, &EditorWidget::insertNumberedList);
+    menu->addSeparator();
+
+    QAction* codeAction = menu->addAction(tr("Code Block"));
+    connect(codeAction, &QAction::triggered, this, &EditorWidget::insertCodeBlock);
+
+    QAction* linkAction = menu->addAction(tr("Insert Link"));
+    connect(linkAction, &QAction::triggered, this, &EditorWidget::insertLink);
+
+    QAction* wikilinkAction = menu->addAction(tr("Insert Wikilink"));
+    connect(wikilinkAction, &QAction::triggered, this, &EditorWidget::insertWikilink);
+    menu->addSeparator();
+
+    // Standard editor actions
+    QAction* undoAction = menu->addAction(tr("Undo"));
+    undoAction->setShortcut(QKeySequence::Undo);
+    connect(undoAction, &QAction::triggered, this, &QPlainTextEdit::undo);
+
+    QAction* redoAction = menu->addAction(tr("Redo"));
+    redoAction->setShortcut(QKeySequence::Redo);
+    connect(redoAction, &QAction::triggered, this, &QPlainTextEdit::redo);
+    menu->addSeparator();
+
+    QAction* cutAction = menu->addAction(tr("Cut"));
+    cutAction->setShortcut(QKeySequence::Cut);
+    connect(cutAction, &QAction::triggered, this, &QPlainTextEdit::cut);
+
+    QAction* copyAction = menu->addAction(tr("Copy"));
+    copyAction->setShortcut(QKeySequence::Copy);
+    connect(copyAction, &QAction::triggered, this, &QPlainTextEdit::copy);
+
+    QAction* pasteAction = menu->addAction(tr("Paste"));
+    pasteAction->setShortcut(QKeySequence::Paste);
+    connect(pasteAction, &QAction::triggered, this, &QPlainTextEdit::paste);
+
+    menu->exec(event->globalPos());
+    delete menu;
 }
 
 void EditorWidget::resizeEvent(QResizeEvent* event)

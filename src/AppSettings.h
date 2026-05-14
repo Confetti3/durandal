@@ -33,6 +33,9 @@ public:
     QByteArray splitterState() const;
     void setSplitterState(const QByteArray& state);
 
+    int editorFontSize() const;
+    void setEditorFontSize(int size);
+
 private:
     QSettings m_settings;
     QString m_lastFolderPath;
@@ -41,6 +44,7 @@ private:
     QByteArray m_windowGeometry;
     QByteArray m_windowState;
     QByteArray m_splitterState;
+    int m_editorFontSize;
 
     static constexpr int MAX_RECENT_FOLDERS = 10;
 };

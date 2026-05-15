@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(Durandal VERSION 1.0.0 LANGUAGES CXX)
+project(Durandal VERSION 1.1.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -32,6 +32,7 @@ set(SOURCES
     src/main.cpp
     src/VaultManager.cpp
     src/FileTreeModel.cpp
+    src/FileFilterProxyModel.cpp
     src/MainWindow.cpp
     src/EditorWidget.cpp
     src/PreviewWidget.cpp
@@ -53,6 +54,7 @@ set(SOURCES
 set(HEADERS
     src/VaultManager.h
     src/FileTreeModel.h
+    src/FileFilterProxyModel.h
     src/MainWindow.h
     src/EditorWidget.h
     src/PreviewWidget.h

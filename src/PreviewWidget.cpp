@@ -2,6 +2,10 @@
 #include "MarkdownRenderer.h"
 #include <QVBoxLayout>
 #include <QDesktopServices>
+#include <QMenu>
+#include <QAction>
+#include <QShortcut>
+#include <QKeySequence>
 
 PreviewPage::PreviewPage(QObject* parent)
     : QWebEnginePage(parent)
@@ -39,8 +43,29 @@ PreviewWidget::PreviewWidget(QWidget* parent)
     layout->addWidget(m_webView);
 
     m_webView->setPage(m_page);
-    m_webView->setContextMenuPolicy(Qt::NoContextMenu);
+    m_webView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_webView, &QWidget::customContextMenuRequested,
+            this, [this](const QPoint& pos) {
+                QMenu menu(m_webView);
+                QAction* copyAction = menu.addAction(tr("Copy"));
+                connect(copyAction, &QAction::triggered, this, [this]() {
+                    m_page->triggerAction(QWebEnginePage::Copy);
+                });
+                QAction* selectAllAction = menu.addAction(tr("Select All"));
+                connect(selectAllAction, &QAction::triggered, this, [this]() {
+                    m_page->triggerAction(QWebEnginePage::SelectAll);
+                });
+                menu.exec(m_webView->mapToGlobal(pos));
+            });
     m_page->setBackgroundColor(m_dark ? QColor("#1e1e2e") : Qt::white);
+
+    // Keyboard shortcuts for the preview
+    QShortcut* copyShortcut = new QShortcut(QKeySequence::Copy, m_webView);
+    connect(copyShortcut, &QShortcut::activated,
+            [this]() { m_page->triggerAction(QWebEnginePage::Copy); });
+    QShortcut* selectAllShortcut = new QShortcut(QKeySequence::SelectAll, m_webView);
+    connect(selectAllShortcut, &QShortcut::activated,
+            [this]() { m_page->triggerAction(QWebEnginePage::SelectAll); });
 
     connect(m_page, &PreviewPage::wikilinkClicked,
             this, &PreviewWidget::wikilinkClicked);

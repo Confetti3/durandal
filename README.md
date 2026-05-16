@@ -23,9 +23,11 @@ A terminal-inspired note-taking app built with **Qt 6** and **C++17**.
 
 ## Screenshots
 
-<img width="1665" height="1039" alt="Durandal_B79XOH8piS" src="https://github.com/user-attachments/assets/68fde02f-a0fa-4222-a71b-120bca770724" />
 
-<img width="1665" height="1039" alt="Durandal_6Tk7s3wzIT" src="https://github.com/user-attachments/assets/91245bd3-c3b9-4008-aafc-95c9ee130086" />
+
+<img width="1774" height="1000" alt="Durandal_Dn9uSfdHdN" src="https://github.com/user-attachments/assets/f3671676-a847-47d0-bf48-cdea5d38c503" />
+
+<img width="1774" height="1000" alt="Durandal_yCx8VJcKal" src="https://github.com/user-attachments/assets/87070855-75d8-447b-9935-d01bf76ae247" />
 
 
 ## Download

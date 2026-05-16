@@ -167,6 +167,38 @@ int EditorWidget::fontSize() const
     return m_fontSize;
 }
 
+void EditorWidget::setWordWrap(bool wrap)
+{
+    setLineWrapMode(wrap ? WidgetWidth : NoWrap);
+}
+
+bool EditorWidget::wordWrap() const
+{
+    return lineWrapMode() == WidgetWidth;
+}
+
+void EditorWidget::setFontFamily(const QString& family)
+{
+    QFont font(family, m_fontSize);
+    font.setStyleHint(QFont::Monospace);
+    document()->setDefaultFont(font);
+    setFont(font);
+    m_lineNumberArea->setFont(font);
+}
+
+void EditorWidget::setTabWidth(int spaces)
+{
+    QFontMetrics fm(font());
+    int width = fm.horizontalAdvance(QString(spaces, ' '));
+    setTabStopDistance(width);
+}
+
+void EditorWidget::setShowLineNumbers(bool show)
+{
+    m_lineNumberArea->setVisible(show);
+    updateLineNumberAreaWidth(0);
+}
+
 void EditorWidget::setFontSize(int size)
 {
     if (size < 6 || size > 48) return;
@@ -327,6 +359,9 @@ void EditorWidget::emitCursorPosition()
 
 int EditorWidget::lineNumberAreaWidth() const
 {
+    if (!m_lineNumberArea->isVisible())
+        return 0;
+
     int digits = 1;
     int max = std::max(1, blockCount());
     while (max >= 10) { max /= 10; ++digits; }

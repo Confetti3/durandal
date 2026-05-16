@@ -32,10 +32,7 @@ private:
     QList<QAction*> m_actions;
     QComboBox* m_fontSizeCombo;
     void setupActions(bool dark);
-    static QIcon makeTextIcon(const QString& text, const QColor& color, bool bold = false, bool italic = false);
-    static QIcon makeHeadingIcon(int level, const QColor& color);
-    static QIcon makeListIcon(bool numbered, const QColor& color);
-    static QIcon makeLinkIcon(const QColor& color);
+    static QIcon makeIcon(const QString& text, const QColor& color, qreal dpr, bool bold = false, bool italic = false);
 };
 
 #endif // TOOLBAR_H

@@ -171,10 +171,10 @@ void FileTreePanel::onDelete()
     QString path = m_model->filePath(current);
     bool isDir = m_model->isDirectory(current);
 
-    QString msg = isDir ? tr("Delete folder '%1' and all its contents?").arg(path)
-                        : tr("Delete file '%1'?").arg(path);
+    QString msg = isDir ? tr("Move folder '%1' to trash?").arg(path)
+                        : tr("Move file '%1' to trash?").arg(path);
 
-    if (QMessageBox::question(this, tr("Confirm Delete"), msg,
+    if (QMessageBox::question(this, tr("Confirm"), msg,
                                QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
         if (m_folder->deleteFile(path)) {
             refresh();
@@ -258,7 +258,7 @@ void FileTreePanel::showContextMenu(const QPoint& pos)
         }
         menu.addSeparator();
         renameAction = menu.addAction(tr("Rename"));
-        deleteAction = menu.addAction(tr("Delete"));
+        deleteAction = menu.addAction(tr("Move to Trash"));
     }
 
     QAction* selected = menu.exec(m_treeView->viewport()->mapToGlobal(pos));

@@ -16,11 +16,14 @@ public slots:
     void setWordCount(int count);
     void setFileName(const QString& name);
     void setFileType(const QString& type);
+    void setModified(bool modified);
     void clear();
 
 private:
     QLabel* m_lineColLabel;
     QLabel* m_wordCountLabel;
+    QLabel* m_fileTypeLabel;
+    QLabel* m_modifiedLabel;
     QLabel* m_fileNameLabel;
 
     void setupUI();

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(Durandal VERSION 1.1.2 LANGUAGES CXX)
+project(Durandal VERSION 1.1.5 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -49,6 +49,7 @@ set(SOURCES
     src/MarkdownHighlighter.cpp
     src/AutoCompleter.cpp
     src/AppSettings.cpp
+    src/SettingsDialog.cpp
 )
 
 set(HEADERS
@@ -71,6 +72,7 @@ set(HEADERS
     src/MarkdownHighlighter.h
     src/AutoCompleter.h
     src/AppSettings.h
+    src/SettingsDialog.h
 )
 
 set(RESOURCES

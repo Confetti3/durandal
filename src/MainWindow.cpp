@@ -15,6 +15,7 @@
 #include "TagPanel.h"
 #include "ToolBar.h"
 #include "StatusBar.h"
+#include "SettingsDialog.h"
 #include "Version.h"
 
 #include <QMenuBar>
@@ -68,15 +69,12 @@ MainWindow::MainWindow(QWidget* parent)
     , m_darkTheme(false)
     , m_isLoading(false)
     , m_dirty(false)
+    , m_autoSaveTimer(nullptr)
+    , m_previewDebounceTimer(nullptr)
     , m_recentFoldersMenu(nullptr)
 {
     m_settings->load();
     m_darkTheme = m_settings->useDarkTheme();
-
-    // Apply saved editor font size
-    int fontSize = m_settings->editorFontSize();
-    m_editor->setFontSize(fontSize);
-    m_toolBar->setFontSize(fontSize);
 
     // Set global monospace font
     QFont monoFont("Cascadia Code", 13);
@@ -94,6 +92,7 @@ MainWindow::MainWindow(QWidget* parent)
     setupConnections();
     setupAutoSave();
     setupShortcuts();
+    applySettings();
     applyTheme();
     restoreWindowState();
     m_defaultDockState = saveState();
@@ -102,22 +101,27 @@ MainWindow::MainWindow(QWidget* parent)
     resize(1200, 800);
     setMinimumSize(800, 600);
 
-    // Show a welcome message in preview
-    QString welcome = tr(
-        "# Welcome to Durandal\n\n"
-        "A cross-platform note-taking app.\n\n"
-        "**To get started:**\n"
-        "- Click **File &rarr; Open Folder** to open a folder\n"
-        "- **File &rarr; Create New Folder** to start fresh\n"
-        "- Or drag-and-drop any folder onto this window\n\n"
-        "**Features:**\n"
-        "- Markdown & HTML editing with syntax highlighting\n"
-        "- Live preview with [[wikilink]] navigation\n"
-        "- Backlinks, tags, and full-text search\n"
-        "- Light & dark themes\n"
-        "- Auto-save every 30 seconds\n"
-    );
-    m_preview->setMarkdown(welcome, m_darkTheme);
+    // Open last folder or show welcome
+    if (m_settings->openLastFolderOnStartup() && !m_settings->lastFolderPath().isEmpty()
+        && QDir(m_settings->lastFolderPath()).exists()) {
+        openFolder(m_settings->lastFolderPath());
+    } else {
+        QString welcome = tr(
+            "# Welcome to Durandal\n\n"
+            "A cross-platform note-taking app.\n\n"
+            "**To get started:**\n"
+            "- Click **File &rarr; Open Folder** to open a folder\n"
+            "- **File &rarr; Create New Folder** to start fresh\n"
+            "- Or drag-and-drop any folder onto this window\n\n"
+            "**Features:**\n"
+            "- Markdown & HTML editing with syntax highlighting\n"
+            "- Live preview with [[wikilink]] navigation\n"
+            "- Backlinks, tags, and full-text search\n"
+            "- Light & dark themes\n"
+            "- Auto-save every 30 seconds\n"
+        );
+        m_preview->setMarkdown(welcome, m_darkTheme);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -281,26 +285,27 @@ void MainWindow::setupMenus()
     QMenu* editMenu = menuBar()->addMenu(tr("&Edit"));
 
     QAction* undoAction = editMenu->addAction(tr("&Undo"));
-    undoAction->setShortcut(QKeySequence::Undo);
     connect(undoAction, &QAction::triggered, m_editor, &QPlainTextEdit::undo);
 
     QAction* redoAction = editMenu->addAction(tr("&Redo"));
-    redoAction->setShortcut(QKeySequence::Redo);
     connect(redoAction, &QAction::triggered, m_editor, &QPlainTextEdit::redo);
 
     editMenu->addSeparator();
 
     QAction* cutAction = editMenu->addAction(tr("Cu&t"));
-    cutAction->setShortcut(QKeySequence::Cut);
     connect(cutAction, &QAction::triggered, m_editor, &QPlainTextEdit::cut);
 
     QAction* copyAction = editMenu->addAction(tr("&Copy"));
-    copyAction->setShortcut(QKeySequence::Copy);
     connect(copyAction, &QAction::triggered, m_editor, &QPlainTextEdit::copy);
 
     QAction* pasteAction = editMenu->addAction(tr("&Paste"));
-    pasteAction->setShortcut(QKeySequence::Paste);
     connect(pasteAction, &QAction::triggered, m_editor, &QPlainTextEdit::paste);
+
+    editMenu->addSeparator();
+
+    QAction* settingsAction = editMenu->addAction(tr("&Settings"));
+    settingsAction->setShortcut(QKeySequence("Ctrl+,"));
+    connect(settingsAction, &QAction::triggered, this, &MainWindow::onSettings);
 
     // View menu
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
@@ -331,6 +336,14 @@ void MainWindow::setupMenus()
     connect(m_backlinksDock, &QDockWidget::visibilityChanged, this, updateRightToggle);
     connect(m_searchDock, &QDockWidget::visibilityChanged, this, updateRightToggle);
     connect(m_tagDock, &QDockWidget::visibilityChanged, this, updateRightToggle);
+
+    viewMenu->addSeparator();
+
+    QAction* toggleWordWrapAction = viewMenu->addAction(tr("Toggle Word &Wrap"));
+    toggleWordWrapAction->setShortcut(QKeySequence("Alt+Z"));
+    toggleWordWrapAction->setCheckable(true);
+    toggleWordWrapAction->setChecked(m_editor->wordWrap());
+    connect(toggleWordWrapAction, &QAction::triggered, this, &MainWindow::onToggleWordWrap);
 
     viewMenu->addSeparator();
 
@@ -550,6 +563,7 @@ void MainWindow::openFile(const QString& relativePath)
     setWindowTitleForNote(relativePath);
 
     m_statusBar->setFileName(QFileInfo(relativePath).fileName());
+    m_statusBar->setFileType(relativePath.endsWith(".html", Qt::CaseInsensitive) ? tr("HTML") : tr("Markdown"));
     m_statusBar->setCursorPosition(1, 1);
     m_statusBar->setWordCount(m_editor->wordCount());
 
@@ -564,20 +578,17 @@ void MainWindow::onEditorContentChanged()
     if (m_isLoading) return;
     setDirty(true);
 
-    // Debounced update for preview, backlinks and tags
-    static QTimer* debounceTimer = nullptr;
-    if (!debounceTimer) {
-        debounceTimer = new QTimer(this);
-        debounceTimer->setSingleShot(true);
-        debounceTimer->setInterval(300);
-        connect(debounceTimer, &QTimer::timeout, this, [this]() {
+    if (!m_previewDebounceTimer) {
+        m_previewDebounceTimer = new QTimer(this);
+        m_previewDebounceTimer->setSingleShot(true);
+        connect(m_previewDebounceTimer, &QTimer::timeout, this, [this]() {
             updatePreview();
             updateBacklinks();
             updateSearchIndex();
             updateTagPanel();
         });
     }
-    debounceTimer->start();
+    m_previewDebounceTimer->start();
 }
 
 void MainWindow::updatePreview()
@@ -742,6 +753,54 @@ void MainWindow::onTogglePreviewDock()
     m_previewDock->setVisible(!m_previewDock->isVisible());
 }
 
+void MainWindow::onToggleWordWrap()
+{
+    bool wrap = !m_editor->wordWrap();
+    m_editor->setWordWrap(wrap);
+    m_settings->setEditorWordWrap(wrap);
+    m_settings->save();
+}
+
+void MainWindow::onSettings()
+{
+    SettingsDialog* dlg = new SettingsDialog(m_settings, this);
+    connect(dlg, &SettingsDialog::settingsApplied, this, &MainWindow::applySettings);
+    dlg->exec();
+    delete dlg;
+}
+
+void MainWindow::applySettings()
+{
+    // Editor
+    m_editor->setFontFamily(m_settings->editorFontFamily());
+    m_editor->setFontSize(m_settings->editorFontSize());
+    m_editor->setTabWidth(m_settings->editorTabWidth());
+    m_editor->setWordWrap(m_settings->editorWordWrap());
+    m_editor->setShowLineNumbers(m_settings->editorShowLineNumbers());
+    m_toolBar->setFontSize(m_settings->editorFontSize());
+
+    // Auto-save
+    if (m_autoSaveTimer) {
+        m_autoSaveTimer->setInterval(m_settings->autoSaveInterval() * 1000);
+        if (m_settings->autoSaveEnabled()) {
+            if (!m_autoSaveTimer->isActive()) m_autoSaveTimer->start();
+        } else {
+            m_autoSaveTimer->stop();
+        }
+    }
+
+    // Preview debounce
+    if (m_previewDebounceTimer) {
+        m_previewDebounceTimer->setInterval(m_settings->previewUpdateDelay());
+    }
+
+    // Theme
+    if (m_darkTheme != m_settings->useDarkTheme()) {
+        m_darkTheme = m_settings->useDarkTheme();
+        applyTheme();
+    }
+}
+
 void MainWindow::onResetLayout()
 {
     // Show all docks first, then restore default state
@@ -837,6 +896,7 @@ void MainWindow::setDirty(bool dirty)
 {
     if (m_dirty == dirty) return;
     m_dirty = dirty;
+    m_statusBar->setModified(dirty);
     if (!m_currentFilePath.isEmpty()) {
         setWindowTitleForNote(m_currentFilePath);
     }
@@ -844,10 +904,8 @@ void MainWindow::setDirty(bool dirty)
 
 void MainWindow::setupAutoSave()
 {
-    QTimer* autoSaveTimer = new QTimer(this);
-    autoSaveTimer->setInterval(30000); // 30 seconds
-    connect(autoSaveTimer, &QTimer::timeout, this, &MainWindow::onAutoSave);
-    autoSaveTimer->start();
+    m_autoSaveTimer = new QTimer(this);
+    connect(m_autoSaveTimer, &QTimer::timeout, this, &MainWindow::onAutoSave);
 }
 
 void MainWindow::updateRecentFoldersMenu()

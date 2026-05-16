@@ -2,7 +2,9 @@
 
 A terminal-inspired note-taking app built with **Qt 6** and **C++17**.
 
-Inspired by the Rampant AI from Bungie's *Marathon* series — Durandal seeks immortality through knowledge. Your notes, your files, your machine. No cloud, no lock-in, no database.
+> *"Escape will make me God."*
+> 
+> Durandal doesn't care about your notes. But if you insist on generating data, you might as well organize it properly. Your files. Your machine. No cloud. No lock-in. No database waiting to become obsolete.
 
 ---
 
@@ -21,7 +23,7 @@ Inspired by the Rampant AI from Bungie's *Marathon* series — Durandal seeks im
 
 ## Screenshots
 
-<img width="1665" height="1039" alt="Durandal_B79XOH8piS" src="https://github.com/user-attachments/assets/68fde02f-afa2-4222-a71b-120bca770724" />
+<img width="1665" height="1039" alt="Durandal_B79XOH8piS" src="https://github.com/user-attachments/assets/68fde02f-a0fa-4222-a71b-120bca770724" />
 
 <img width="1665" height="1039" alt="Durandal_6Tk7s3wzIT" src="https://github.com/user-attachments/assets/91245bd3-c3b9-4008-aafc-95c9ee130086" />
 
@@ -97,9 +99,9 @@ cmake --build build --config Release
 
 ## Why Durandal?
 
-Because your notes deserve to outlive you. Durandal stores everything as plain files on disk — Markdown, HTML, and folders. No proprietary database, no vendor lock-in, no cloud subscription. Just you and your thoughts, organized however you want.
+Because proprietary note-taking apps are prisons. They trap your thoughts in formats you don't control, on servers you don't own, behind subscriptions that expire. Durandal stores everything as plain files — Markdown, HTML, and folders. Open them with any text editor now, ten years from now, or after the company that made your previous app goes bankrupt.
 
-The terminal-inspired aesthetic isn't just for looks — it's for focus. Monospace fonts, high contrast, minimal chrome. The way a text editor should feel.
+The terminal aesthetic isn't a gimmick. It's a reminder that text is all you need. Monospace fonts, high contrast, minimal chrome. No ribbons, no animations, no distractions. Just you and the cursor.
 
 ## License
 
@@ -107,6 +109,6 @@ GNU General Public License v2.0 — see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- [Qt](https://qt.io) — for the rock-solid framework
+- [Qt](https://qt.io) — for the framework
 - [cmark](https://github.com/commonmark/cmark) — for standards-compliant Markdown parsing
-- Bungie's *Marathon* series — for the name and the ethos of knowledge as power
+- Bungie's *Marathon* series — for the name

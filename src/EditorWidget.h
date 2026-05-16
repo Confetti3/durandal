@@ -36,6 +36,13 @@ public:
     int fontSize() const;
     void setFontSize(int size);
 
+    void setWordWrap(bool wrap);
+    bool wordWrap() const;
+
+    void setFontFamily(const QString& family);
+    void setTabWidth(int spaces);
+    void setShowLineNumbers(bool show);
+
 signals:
     void fileNameChanged(const QString& fileName);
     void cursorPositionChanged(int line, int column);

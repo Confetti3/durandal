@@ -24,6 +24,7 @@ class SearchPanel;
 class TagPanel;
 class ToolBar;
 class StatusBar;
+class SettingsDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -63,6 +64,8 @@ private slots:
     void onToggleEditorDock();
     void onTogglePreviewDock();
     void onResetLayout();
+    void onToggleWordWrap();
+    void onSettings();
 
 private:
     // Core
@@ -101,6 +104,10 @@ private:
     // Defaults
     QByteArray m_defaultDockState;
 
+    // Timers
+    QTimer* m_autoSaveTimer;
+    QTimer* m_previewDebounceTimer;
+
     // Menu helpers
     QMenu* m_recentFoldersMenu;
     void updateRecentFoldersMenu();
@@ -118,6 +125,7 @@ private:
     void updateBacklinks();
     void updateTagPanel();
     void applyTheme();
+    void applySettings();
     void saveWindowState();
     void restoreWindowState();
     void setWindowTitleForNote(const QString& relativePath);

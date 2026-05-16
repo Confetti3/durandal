@@ -5,6 +5,8 @@ StatusBar::StatusBar(QWidget* parent)
     : QStatusBar(parent)
     , m_lineColLabel(new QLabel(this))
     , m_wordCountLabel(new QLabel(this))
+    , m_fileTypeLabel(new QLabel(this))
+    , m_modifiedLabel(new QLabel(this))
     , m_fileNameLabel(new QLabel(this))
 {
     setupUI();
@@ -23,10 +25,14 @@ void StatusBar::setupUI()
 
     addWidget(m_lineColLabel, 0);
     addWidget(m_wordCountLabel, 0);
+    addWidget(m_fileTypeLabel, 0);
+    addWidget(m_modifiedLabel, 0);
     addPermanentWidget(m_fileNameLabel);
 
     m_lineColLabel->setStyleSheet("padding: 0 8px; font-size: 12px;");
     m_wordCountLabel->setStyleSheet("padding: 0 8px; font-size: 12px;");
+    m_fileTypeLabel->setStyleSheet("padding: 0 8px; font-size: 12px; color: #888888;");
+    m_modifiedLabel->setStyleSheet("padding: 0 4px; font-size: 12px; color: #f0a500;");
     m_fileNameLabel->setStyleSheet("padding: 0 8px; font-size: 12px;");
 
     clear();
@@ -49,12 +55,19 @@ void StatusBar::setFileName(const QString& name)
 
 void StatusBar::setFileType(const QString& type)
 {
-    Q_UNUSED(type)
+    m_fileTypeLabel->setText(type);
+}
+
+void StatusBar::setModified(bool modified)
+{
+    m_modifiedLabel->setText(modified ? QStringLiteral("\u25CF") : QString());
 }
 
 void StatusBar::clear()
 {
     m_lineColLabel->setText(tr("Ln 1, Col 1"));
     m_wordCountLabel->setText(tr("Words: 0"));
+    m_fileTypeLabel->clear();
+    m_modifiedLabel->clear();
     m_fileNameLabel->setText(tr("No file open"));
 }

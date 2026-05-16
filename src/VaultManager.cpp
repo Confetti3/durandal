@@ -114,7 +114,7 @@ bool VaultManager::renameFile(const QString& relativePath, const QString& newNam
 bool VaultManager::deleteFile(const QString& relativePath)
 {
     QString full = fullPath(relativePath);
-    if (!QFile::remove(full)) return false;
+    if (!QFile::moveToTrash(full)) return false;
 
     m_allFiles.removeOne(relativePath);
     if (m_watcher->files().contains(full)) {

@@ -41,6 +41,8 @@ signals:
 
 private:
     void injectBodyHtml(const QString& bodyHtml);
+    void saveScrollPosition();
+    void restoreScrollPosition();
 
     QWebEngineView* m_webView;
     PreviewPage* m_page;
@@ -49,6 +51,7 @@ private:
     bool m_dark;
     QUrl m_baseUrl;
     bool m_contentReady;
+    int m_savedScrollY;
 };
 
 #endif // PREVIEWWIDGET_H

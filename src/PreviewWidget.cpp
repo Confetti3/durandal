@@ -4,8 +4,6 @@
 #include <QDesktopServices>
 #include <QMenu>
 #include <QAction>
-#include <QShortcut>
-#include <QKeySequence>
 
 PreviewPage::PreviewPage(QObject* parent)
     : QWebEnginePage(parent)
@@ -37,6 +35,7 @@ PreviewWidget::PreviewWidget(QWidget* parent)
     , m_renderer(new MarkdownRenderer)
     , m_dark(false)
     , m_contentReady(false)
+    , m_savedScrollY(-1)
 {
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -59,20 +58,15 @@ PreviewWidget::PreviewWidget(QWidget* parent)
             });
     m_page->setBackgroundColor(m_dark ? QColor("#1e1e2e") : Qt::white);
 
-    // Keyboard shortcuts for the preview
-    QShortcut* copyShortcut = new QShortcut(QKeySequence::Copy, m_webView);
-    connect(copyShortcut, &QShortcut::activated,
-            [this]() { m_page->triggerAction(QWebEnginePage::Copy); });
-    QShortcut* selectAllShortcut = new QShortcut(QKeySequence::SelectAll, m_webView);
-    connect(selectAllShortcut, &QShortcut::activated,
-            [this]() { m_page->triggerAction(QWebEnginePage::SelectAll); });
-
     connect(m_page, &PreviewPage::wikilinkClicked,
             this, &PreviewWidget::wikilinkClicked);
     connect(m_page, &PreviewPage::externalLinkClicked,
             this, &PreviewWidget::externalLinkClicked);
     connect(m_webView, &QWebEngineView::loadFinished,
-            this, [this](bool ok) { m_contentReady = ok; });
+            this, [this](bool ok) {
+                m_contentReady = ok;
+                restoreScrollPosition();
+            });
 }
 
 void PreviewWidget::setMarkdown(const QString& markdown, bool dark)
@@ -84,6 +78,7 @@ void PreviewWidget::setMarkdown(const QString& markdown, bool dark)
     QString bodyHtml = m_renderer->renderToHtml(markdown);
 
     if (!m_contentReady || themeChanged) {
+        saveScrollPosition();
         m_webView->setHtml(m_renderer->wrapInDocument(bodyHtml, dark), m_baseUrl);
     } else {
         injectBodyHtml(bodyHtml);
@@ -92,14 +87,31 @@ void PreviewWidget::setMarkdown(const QString& markdown, bool dark)
 
 void PreviewWidget::setHtmlContent(const QString& html, bool dark)
 {
-    m_currentMarkdown = html;   // cached for refresh
+    m_currentMarkdown = html;
     bool themeChanged = (m_dark != dark);
     m_dark = dark;
 
     if (!m_contentReady || themeChanged) {
+        saveScrollPosition();
         m_webView->setHtml(m_renderer->wrapInDocument(html, dark), m_baseUrl);
     } else {
         injectBodyHtml(html);
+    }
+}
+
+void PreviewWidget::saveScrollPosition()
+{
+    if (!m_contentReady) return;
+    m_page->runJavaScript(QStringLiteral("window.scrollY"), [this](const QVariant& result) {
+        m_savedScrollY = result.toInt();
+    });
+}
+
+void PreviewWidget::restoreScrollPosition()
+{
+    if (m_savedScrollY > 0) {
+        m_page->runJavaScript(QStringLiteral("window.scrollTo(0, %1)").arg(m_savedScrollY));
+        m_savedScrollY = -1;
     }
 }
 

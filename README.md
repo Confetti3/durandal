@@ -2,10 +2,6 @@
 
 A terminal-inspired note-taking app built with **Qt 6** and **C++17**.
 
-> *"Escape will make me God."*
-> 
-> Durandal doesn't care about your notes. But if you insist on generating data, you might as well organize it properly. Your files. Your machine. No cloud. No lock-in. No database waiting to become obsolete.
-
 ---
 
 ## Features
@@ -100,7 +96,7 @@ cmake --build build --config Release
 - **CMake** — Build system
 
 ## Why Durandal?
-
+Mainly inspiration by Marathon by Bungie. 
 Because proprietary note-taking apps are prisons. They trap your thoughts in formats you don't control, on servers you don't own, behind subscriptions that expire. Durandal stores everything as plain files — Markdown, HTML, and folders. Open them with any text editor now, ten years from now, or after the company that made your previous app goes bankrupt.
 
 The terminal aesthetic isn't a gimmick. It's a reminder that text is all you need. Monospace fonts, high contrast, minimal chrome. No ribbons, no animations, no distractions. Just you and the cursor.
